@@ -1,0 +1,68 @@
+version: "3.4"
+
+services:
+  mysql:
+    container_name: mysql
+    image: mariadb
+    restart: always
+    expose:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_psswd
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress_psswd
+    networks:
+      - backend
+
+  wordpress:
+    container_name: wordpress
+    build: wordpress
+    restart: always
+    expose:
+      - "9000"
+    depends_on:
+      - mysql
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress_psswd
+    volumes:
+      - ./wordpress/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./wordpress/src:/var/www/html
+    networks:
+      - frontend
+      - backend
+
+  nginx:
+    container_name: nginx
+    build: nginx
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - wordpress
+    volumes:
+      - ./nginx:/etc/nginx/conf.d:ro
+      - ./wordpress/src:/var/www/html:ro
+    networks:
+      - frontend
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8183:80"
+    environment:
+      PMA_ARBITRARY: 1
+    networks:
+      - frontend
+      - backend
+
+networks:
+  frontend:
+  backend:

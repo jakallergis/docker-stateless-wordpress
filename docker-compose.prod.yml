@@ -1,0 +1,57 @@
+version: "3.4"
+
+services:
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE:
+      MYSQL_USER:
+      MYSQL_PASSWORD:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/DB_ROOT_PASSWORD
+      MYSQL_DATABASE_FILE: /run/secrets/DB_NAME
+      MYSQL_USER_FILE: /run/secrets/DB_USER
+      MYSQL_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+    secrets:
+      - DB_ROOT_PASSWORD
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+    volumes:
+      - db_data
+
+  wordpress:
+    build:
+      context: wordpress
+      dockerfile: production.Dockerfile
+    environment:
+      WORDPRESS_DB_NAME:
+      WORDPRESS_DB_USER:
+      WORDPRESS_DB_PASSWORD:
+      WORDPRESS_DB_NAME_FILE: /run/secrets/DB_NAME
+      WORDPRESS_DB_USER_FILE: /run/secrets/DB_USER
+      WORDPRESS_DB_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+    secrets:
+      - DB_ROOT_PASSWORD
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+    volumes:
+      - wp_data:/var/www/html
+
+  nginx:
+    volumes:
+      - wp_data:/var/www/html
+
+volumes:
+  db_data:
+  wp_data:
+
+secrets:
+  DB_ROOT_PASSWORD:
+    file: ./secrets/DB_ROOT_PASSWORD
+  DB_NAME:
+    file: ./secrets/DB_NAME
+  DB_USER:
+    file: ./secrets/DB_USER
+  DB_PASSWORD:
+    file: ./secrets/DB_PASSWORD
